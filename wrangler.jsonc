@@ -13,6 +13,7 @@
   "d1_databases": [{
     "binding": "DB",
     "database_name": "torn-lending-bank",
+    "database_id": "acc5f973-6395-4fc5-ab5d-5832ddc4a322",
     "migrations_dir": "migrations"
   }],
   "triggers": { "crons": ["17 3 * * *"] },
