@@ -49,3 +49,30 @@ test('invalid beta invitation IDs cannot grant access',async()=>{
  for(const id of ['', 'Tester', '0', '12345678901'])assert.equal((await call(e,'access',{token,body:{action:'invite',id}})).status,400);
  assert.deepEqual((await call(e,'access',{token})).data.members,[]);
 });
+test('borrower requests persist across reloads and lender decisions reach the borrower without a Torn key',async()=>{
+ const e=fixture(),owner=(await login(e)).data.token;
+ await call(e,'access',{token:owner,body:{action:'invite',id:BORROWER}});
+ const borrower=(await login(e,'borrower')).data.token;
+ const s=(await call(e,'bank',{token:owner})).data.state,today=TB.today(),maturity=TB.addDays(today,60);
+ s.loans=[{id:'request-flow-loan',borrowerId:BORROWER,name:'Tester',product:'bank',principal:100e6,rate:.005,freeDays:0,start:today,maturity,status:'active',payments:[],extensions:[],rules:TB.clone(s.rules),issuer:OWNER}];
+ TB.person(s,BORROWER);
+ e.DB.sqlite.prepare('UPDATE bank_state SET data=? WHERE id=?').run(JSON.stringify(s),'main');
+ let sequence=0;
+ async function save(token,action,payload){
+  const revision=(await call(e,'bank',{token})).data.state.revision;
+  const r=await call(e,'bank',{token,body:{action,payload,revision,requestId:'request-flow-'+(++sequence)}});
+  assert.equal(r.status,200,r.data.error);return r.data.state;
+ }
+ await save(borrower,'paymentIntent',{id:'request-flow-loan',amount:10e6,recipient:OWNER});
+ await save(borrower,'requestExtension',{id:'request-flow-loan',originalDue:maturity,until:TB.addDays(maturity,7),reason:'Requested extra time'});
+ const visible=(await call(e,'bank',{token:owner})).data.state;
+ assert.equal(visible.paymentIntents.length,1);assert.equal(visible.extensionRequests.length,1);
+ assert.equal(visible.loans[0].payments.length,0);assert.equal(visible.loans[0].extensions.length,0);
+ const reviewed=await save(owner,'payment',{id:'request-flow-loan',intentId:visible.paymentIntents[0].id,cash:10e6,recipient:OWNER,date:today,reference:'VERIFIED-TEST-RECEIPT'});
+ await save(owner,'acceptPayment',{id:reviewed.pendingPayments[0].id});
+ await save(owner,'extensionDecision',{id:visible.extensionRequests[0].id,approve:true,reason:'Approved by lender'});
+ const final=(await call(e,'bank',{token:borrower})).data.state;
+ assert.equal(final.paymentIntents[0].status,'received');assert.equal(final.pendingPayments[0].status,'accepted');
+ assert.equal(final.extensionRequests[0].status,'approved');assert.equal(final.loans[0].extensions[0].until,TB.addDays(maturity,7));
+ assert.equal(TB.balance(final.loans[0],today).total,90e6);
+});
