@@ -1,14 +1,14 @@
 import {build} from 'esbuild';
 import {mkdir,writeFile,copyFile,readFile} from 'node:fs/promises';
 const out='dist/public';await mkdir(out+'/downloads',{recursive:true});
-const origin=process.env.BANK_ORIGIN||'';
+const origin=process.env.BANK_ORIGIN??'https://torn-lending-bank.975y7srs57.workers.dev';
 if(origin){const u=new URL(origin);if(u.protocol!=='https:'||u.origin!==origin||!u.hostname.endsWith('.workers.dev'))throw Error('BANK_ORIGIN must be the deployed https://…workers.dev origin, with no trailing slash.');}
-const repo=process.env.RELEASE_REPO||'';if(repo&&!/^[\w.-]+\/[\w.-]+$/.test(repo))throw Error('Invalid RELEASE_REPO');
+const repo=process.env.RELEASE_REPO??'quill112293/torn-lending-bank';if(repo&&!/^[\w.-]+\/[\w.-]+$/.test(repo))throw Error('Invalid RELEASE_REPO');
 const common={bundle:true,minify:true,target:['es2022'],jsx:'automatic',loader:{'.css':'text'},legalComments:'eof',define:{'process.env.NODE_ENV':'"production"'}};
 await build({...common,entryPoints:['src/main.tsx'],outfile:out+'/bank.js',format:'iife',define:{...common.define,__NATIVE__:'false',__BANK_ORIGIN__:JSON.stringify(origin),__ROLE_LABEL__:'"Bank"'}});
 for(const role of ['Lender','Borrower']){
  const filename='Torn-Lending-Bank-'+role+'.user.js';
- const metadata=['// ==UserScript==','// @name         Torn Lending Bank '+role,'// @namespace    Aaron112293.TornLendingBank','// @version      1.1.0-beta.1','// @description  Shared bank controls directly in Torn. Records only; no game actions.','// @author       Aaron112293 [3542697]','// @match        https://www.torn.com/*','// @match        https://torn.com/*','// @run-at       document-end','// @grant        GM_xmlhttpRequest','// @connect      '+(origin?new URL(origin).hostname:'workers.dev'),'// @noframes',...(repo?['// @downloadURL  https://raw.githubusercontent.com/'+repo+'/main/downloads/'+filename,'// @updateURL    https://raw.githubusercontent.com/'+repo+'/main/downloads/'+filename]:[]),'// ==/UserScript=='];
+ const metadata=['// ==UserScript==','// @name         Torn Lending Bank '+role,'// @namespace    Aaron112293.TornLendingBank','// @version      1.1.0-beta.2','// @description  Shared bank controls directly in Torn. Records only; no game actions.','// @author       Aaron112293 [3542697]','// @match        https://www.torn.com/*','// @match        https://torn.com/*','// @run-at       document-end','// @grant        GM_xmlhttpRequest','// @connect      '+(origin?new URL(origin).hostname:'workers.dev'),'// @noframes',...(repo?['// @downloadURL  https://raw.githubusercontent.com/'+repo+'/main/downloads/'+filename,'// @updateURL    https://raw.githubusercontent.com/'+repo+'/main/downloads/'+filename]:[]),'// ==/UserScript=='];
  await build({...common,entryPoints:['src/main.tsx'],outfile:out+'/downloads/'+filename,format:'iife',banner:{js:metadata.join('\n')},define:{...common.define,__NATIVE__:'true',__BANK_ORIGIN__:JSON.stringify(origin),__ROLE_LABEL__:JSON.stringify(role)}});
 }
 await build({entryPoints:['server/worker.js'],outfile:'dist/worker.mjs',bundle:true,format:'esm',platform:'neutral',target:'es2022'});
