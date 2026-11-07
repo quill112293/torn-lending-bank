@@ -1,11 +1,11 @@
 {
-  "version": "1.1.0-beta.9",
+  "version": "1.1.0-beta.12",
   "build": "passed",
   "tests": {
-    "passed": 83,
+    "passed": 84,
     "failed": 0,
     "original_lending_tests": 21,
-    "authentication_migration_tests": 16,
+    "authentication_migration_tests": 17,
     "transport_session_key_tests": 29,
     "diagnostic_privacy_shape_tests": 4,
     "sign_in_flow_tests": 4,
@@ -13,19 +13,20 @@
     "loan_request_display_lifecycle_tests": 5
   },
   "wrangler_deploy_dry_run": "beta_3_passed_no_worker_configuration_changes_since",
-  "live_cloudflare_deployment": "beta_8_verified_beta_9_pending_at_commit",
+  "live_cloudflare_deployment": "beta_12_pending_at_commit",
   "github_repository": "quill112293/torn-lending-bank",
   "existing_data_migration": "pending_owner_export",
-  "browser_ui_review": "beta_9_request_component_render_tests_passed_native_retest_pending",
+  "browser_ui_review": "beta_12_single_control_locations_checked_build_passed_native_retest_pending",
   "iphone_torn_pda_trial": "beta_8_owner_report_all_13_requests_200_including_access_update_and_two_bank_saves_borrower_requests_reported_saved_but_not_visible",
   "bank_origin": "https://torn-lending-bank.975y7srs57.workers.dev",
   "signed_in_owner_trial": "beta_5_authentication_logout_and_checks_confirmed_beta_6_remembered_access_and_refresh_confirmed_lending_operations_pending",
   "native_http_fix": "descriptive_application_user_agent_verified_against_live_health_endpoint",
-  "logout_button": "top_bar_and_connections_share_logout_handler",
+  "logout_button": "connections_only",
   "diagnostics": "allowlisted_metadata_only_no_automatic_upload_no_keys_tokens_or_bank_records",
   "native_refresh_fix": "single_bank_read_after_login_in_flight_reads_shared_writes_and_session_changes_invalidate_no_automatic_retries",
   "missing_key_fix": "empty_key_reproduces_400_52_byte_response_client_blocks_invalid_keys_before_network_and_preserves_remembered_session",
   "invite_form": "explicit_click_and_app_validation_no_native_constraint_block_clear_pending_success_error_feedback_normalized_ID_inputs_owner_only_server_permissions_preserved",
   "invite_issue": "owner_reports_no_visible_result_on_tap_exact_device_cause_not_reproduced",
-  "loan_request_fix": "payment_intents_and_extensions_visible_per_loan_and_all_loans_linked_receipt_review_statuses_modal_errors_visible_no_live_records_changed"
+  "loan_request_fix": "payment_intents_and_extensions_visible_per_loan_and_all_loans_linked_receipt_review_statuses_modal_errors_visible_no_live_records_changed",
+  "diagnostics_location": "rules_only_all_signed_in_roles"
 }

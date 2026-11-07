@@ -122,3 +122,6 @@ API cross-origin access is restricted to Torn and the same bank origin. Native T
 
 ### Beta.10 — Rules tools
 Rules now includes Copy diagnostic data, an owner export, and a confirmed owner-only bank reset. Reset clears bank records, custom rules and staff, returns the bank offline, and keeps beta invitations and sessions. It does not change Torn money or items. No live reset was performed during release.
+
+### Beta.12 — Button locations
+Log out appears only in Connections. Copy diagnostic data appears only in Rules, with duplicates removed from the header, Connections and sign-in screens. Borrowers can open Rules read-only to access diagnostics; reset and rule edits remain owner-only.
