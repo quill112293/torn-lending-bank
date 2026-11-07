@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS identities (id TEXT PRIMARY KEY, torn_id TEXT NOT NULL UNIQUE, name TEXT NOT NULL, profile TEXT NOT NULL, verified_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS bank_state (id TEXT PRIMARY KEY, data TEXT NOT NULL, revision INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE IF NOT EXISTS api_limits (id TEXT PRIMARY KEY, bucket INTEGER NOT NULL, count INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, torn_id TEXT NOT NULL, expires_at INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS sessions_account ON sessions(torn_id);
+CREATE INDEX IF NOT EXISTS sessions_expiry ON sessions(expires_at);
+CREATE TABLE IF NOT EXISTS allowed_members (torn_id TEXT PRIMARY KEY, created_at TEXT NOT NULL, created_by TEXT NOT NULL);

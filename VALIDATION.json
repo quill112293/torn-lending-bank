@@ -1,0 +1,16 @@
+{
+  "version": "1.1.0-beta.1",
+  "build": "passed",
+  "tests": {
+    "passed": 33,
+    "failed": 0,
+    "original_lending_tests": 21,
+    "authentication_migration_tests": 12
+  },
+  "wrangler_deploy_dry_run": "passed",
+  "live_cloudflare_deployment": "pending_account_access",
+  "github_repository": "quill112293/torn-lending-bank",
+  "existing_data_migration": "pending_owner_export",
+  "browser_ui_review": "not_completed_browser_unresponsive",
+  "iphone_torn_pda_trial": "pending"
+}
