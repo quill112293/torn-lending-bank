@@ -69,7 +69,7 @@ export function createTransport(origin, {native = false, onExpired = () => {}, s
       if (native && typeof PDA_httpGet === 'function' && typeof PDA_httpPost === 'function') {
         driver = 'Torn PDA';
         // Cloudflare recommends an application User-Agent for native HTTP clients.
-        headers['User-Agent'] = 'TornLendingBank/1.1.0-beta.10 (TornPDA userscript)';
+        headers['User-Agent'] = 'TornLendingBank/1.1.0-beta.11 (TornPDA userscript)';
         let timer;
         try {
           res = await Promise.race([
@@ -79,7 +79,7 @@ export function createTransport(origin, {native = false, onExpired = () => {}, s
         } finally { clearTimeout(timer); }
       } else if (native && typeof GM_xmlhttpRequest === 'function') {
         driver = 'userscript';
-        headers['User-Agent'] = 'TornLendingBank/1.1.0-beta.10 (userscript)';
+        headers['User-Agent'] = 'TornLendingBank/1.1.0-beta.11 (userscript)';
         res = await new Promise((resolve, reject) => GM_xmlhttpRequest({method, url, headers, data: payload, timeout: 25000, anonymous: true, onload: resolve, onerror: reject, ontimeout: reject}));
       } else {
         const r = await fetch(url, {method, headers, body: payload, credentials: 'omit', cache: 'no-store', signal: AbortSignal.timeout(25000)});
