@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0-beta.12",
+  "version": "1.1.0-beta.13",
   "build": "passed",
   "tests": {
     "passed": 84,
@@ -13,10 +13,10 @@
     "loan_request_display_lifecycle_tests": 5
   },
   "wrangler_deploy_dry_run": "beta_3_passed_no_worker_configuration_changes_since",
-  "live_cloudflare_deployment": "beta_12_pending_at_commit",
+  "live_cloudflare_deployment": "beta_13_pending_at_commit",
   "github_repository": "quill112293/torn-lending-bank",
   "existing_data_migration": "pending_owner_export",
-  "browser_ui_review": "beta_12_single_control_locations_checked_build_passed_native_retest_pending",
+  "browser_ui_review": "beta_13_role_conditions_checked_build_passed_native_retest_pending",
   "iphone_torn_pda_trial": "beta_8_owner_report_all_13_requests_200_including_access_update_and_two_bank_saves_borrower_requests_reported_saved_but_not_visible",
   "bank_origin": "https://torn-lending-bank.975y7srs57.workers.dev",
   "signed_in_owner_trial": "beta_5_authentication_logout_and_checks_confirmed_beta_6_remembered_access_and_refresh_confirmed_lending_operations_pending",
@@ -28,5 +28,5 @@
   "invite_form": "explicit_click_and_app_validation_no_native_constraint_block_clear_pending_success_error_feedback_normalized_ID_inputs_owner_only_server_permissions_preserved",
   "invite_issue": "owner_reports_no_visible_result_on_tap_exact_device_cause_not_reproduced",
   "loan_request_fix": "payment_intents_and_extensions_visible_per_loan_and_all_loans_linked_receipt_review_statuses_modal_errors_visible_no_live_records_changed",
-  "diagnostics_location": "rules_only_all_signed_in_roles"
+  "diagnostics_location": "lender_rules_only_borrower_locations_preserved"
 }
