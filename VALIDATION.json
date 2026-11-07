@@ -9,10 +9,10 @@
     "transport_session_key_tests": 19
   },
   "wrangler_deploy_dry_run": "passed",
-  "live_cloudflare_deployment": "beta_3_pending",
+  "live_cloudflare_deployment": "beta_3_public_health_and_exact_lender_download_verified",
   "github_repository": "quill112293/torn-lending-bank",
   "existing_data_migration": "pending_owner_export",
-  "browser_ui_review": "beta_3_pending",
+  "browser_ui_review": "beta_3_sign_in_remember_checkbox_and_borrower_lender_custom_key_links_verified",
   "iphone_torn_pda_trial": "pending",
   "bank_origin": "https://torn-lending-bank.975y7srs57.workers.dev",
   "signed_in_owner_trial": "pending",
