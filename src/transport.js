@@ -1,4 +1,5 @@
 import {createSessionStore, validSession} from './session-store.js';
+import {createRequestLog} from './diagnostics.js';
 
 export function normalizeOrigin(value) {
   const u = new URL(value);
@@ -9,6 +10,7 @@ export function normalizeOrigin(value) {
 export function createTransport(origin, {native = false, onExpired = () => {}, store = createSessionStore(origin, {native})} = {}) {
   origin = normalizeOrigin(origin);
   let bearer = '', expiresAt = 0, remembered = false, notice = '', epoch = 0, writes = Promise.resolve();
+  const requestLog = createRequestLog();
   const hasSession = () => !!bearer && expiresAt > Date.now();
   // Serialize persistence so a slow save cannot restore a session after sign-out.
   function persist(value) {
@@ -40,12 +42,13 @@ export function createTransport(origin, {native = false, onExpired = () => {}, s
     if (body !== undefined) { headers['Content-Type'] = 'application/json'; headers['x-tlb-action'] = '1'; }
     if (bearer) headers.Authorization = 'Bearer ' + bearer;
     const url = origin + '/api/' + path, payload = body === undefined ? undefined : JSON.stringify(body);
+    const record = requestLog.start(path, method);
     let res, driver = 'browser';
     try {
       if (native && typeof PDA_httpGet === 'function' && typeof PDA_httpPost === 'function') {
         driver = 'Torn PDA';
         // Cloudflare recommends an application User-Agent for native HTTP clients.
-        headers['User-Agent'] = 'TornLendingBank/1.1.0-beta.4 (TornPDA userscript)';
+        headers['User-Agent'] = 'TornLendingBank/1.1.0-beta.5 (TornPDA userscript)';
         let timer;
         try {
           res = await Promise.race([
@@ -55,16 +58,17 @@ export function createTransport(origin, {native = false, onExpired = () => {}, s
         } finally { clearTimeout(timer); }
       } else if (native && typeof GM_xmlhttpRequest === 'function') {
         driver = 'userscript';
-        headers['User-Agent'] = 'TornLendingBank/1.1.0-beta.4 (userscript)';
+        headers['User-Agent'] = 'TornLendingBank/1.1.0-beta.5 (userscript)';
         res = await new Promise((resolve, reject) => GM_xmlhttpRequest({method, url, headers, data: payload, timeout: 25000, anonymous: true, onload: resolve, onerror: reject, ontimeout: reject}));
       } else {
         const r = await fetch(url, {method, headers, body: payload, credentials: 'omit', cache: 'no-store', signal: AbortSignal.timeout(25000)});
         res = {status: r.status, responseText: await r.text()};
       }
-    } catch { throw Error('Connection interrupted. Refresh the bank before retrying a save.'); }
+    } catch { record(driver, 'network_error'); throw Error('Connection interrupted. Refresh the bank before retrying a save.'); }
     // Never display an upstream response body: it may contain sensitive details.
     const status = Number(res?.status) || 0;
     if (status === 401) {
+      record(driver, 'session_expired', res);
       if (epoch === requestEpoch) { await clear(); onExpired(); }
       throw Error('Your bank session ended. Sign in again.');
     }
@@ -73,24 +77,33 @@ export function createTransport(origin, {native = false, onExpired = () => {}, s
       data = JSON.parse(res.responseText);
       if (!data || typeof data !== 'object' || Array.isArray(data)) throw Error('shape');
     } catch {
+      record(driver, status ? 'unreadable_response' : 'missing_http_status', res);
       if (status === 403 && /(?:error code:|error)\s*1010\b/i.test(String(res?.responseText))) {
         throw Error('Cloudflare blocked this connection (1010). Update the bank script, then refresh. If it continues, open the bank in your browser.');
       }
       throw Error('Bank returned an unreadable response (HTTP ' + status + ', ' + driver + '). Refresh the bank before retrying a save.');
     }
-    if (status < 200 || status >= 300 || data.error) throw Error(typeof data.error === 'string' ? data.error : 'Bank request failed (HTTP ' + status + ').');
-    if (epoch !== requestEpoch) throw Error('Your login changed. Refresh the bank.');
+    if (status < 200 || status >= 300 || data.error) {
+      record(driver, status ? 'http_error' : 'missing_http_status', res);
+      throw Error(typeof data.error === 'string' ? data.error : 'Bank request failed (HTTP ' + status + ').');
+    }
+    if (epoch !== requestEpoch) { record(driver, 'session_changed', res); throw Error('Your login changed. Refresh the bank.'); }
     if (path === 'link') {
       const session = {origin, token: data.token, expiresAt: data.expiresAt};
       delete data.token;
-      if (!validSession(session, origin)) throw Error('The bank returned an invalid login. Please try again.');
+      if (!validSession(session, origin)) { record(driver, 'invalid_login', res); throw Error('The bank returned an invalid login. Please try again.'); }
       bearer = session.token; expiresAt = session.expiresAt; remembered = remember; notice = '';
       await persist(remember ? session : null);
     }
+    record(driver, 'ok', res);
     return data;
   }
   return {
     ready, request, hasSession, clear, isRemembered: () => remembered && hasSession(), notice: () => notice,
+    diagnostics: () => ({bankOrigin: origin, native, sessionActive: hasSession(), remembered: remembered && hasSession(),
+      storage: ['torn-pda', 'userscript', 'browser'].includes(store.kind) ? store.kind : 'custom',
+      capabilities: {pdaGet: typeof PDA_httpGet === 'function', pdaPost: typeof PDA_httpPost === 'function', userscriptRequest: typeof GM_xmlhttpRequest === 'function', browserFetch: typeof fetch === 'function'},
+      recentRequests: requestLog.snapshot()}),
     async forget() { remembered = false; notice = ''; await persist(null); },
     async logout() {
       await ready;

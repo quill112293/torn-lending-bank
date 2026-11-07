@@ -1,10 +1,13 @@
 # Torn Lending Bank — GitHub / Cloudflare edition
 
-Version 1.1.0-beta.4. Owner: Aaron112293 [3542697].
+Version 1.1.0-beta.5. Owner: Aaron112293 [3542697].
 
 The bank is deployed at https://torn-lending-bank.975y7srs57.workers.dev. The source and two native userscripts are configured for that address and for updates from this GitHub repository. Signed-in owner testing and testing on iPhone/Torn PDA are still pending. Do not retire the existing bank until its records have been exported, imported and checked.
 
 ## What changed
+
+- Copy diagnostics is available on the sign-in screen, bank header and Connections. It copies only version, time, screen, session/key-presence booleans, storage type, request capabilities and the last 16 connection results. Results contain operation names, timings, HTTP status and response field types/lengths. Request bodies, response bodies, URLs with paths or queries, API keys, session tokens, account identities and bank records are excluded. The report is never sent automatically or saved by the app. If clipboard access fails, a selectable report opens for manual copying.
+- The iPhone report of HTTP 0 is still under investigation. Diagnostics distinguish a missing response/status from a valid HTTP error without exposing its contents. This release adds evidence collection; it does not claim to fix the device-only failure.
 
 - A labelled Log out button is visible at the top of every signed-in bank screen. It clears the API key and account checks, pauses automatic checks, removes the remembered bank login and requests server-side session revocation. In the fictional demo it exits the demo. Closing or minimizing the panel still preserves the bank login.
 
@@ -74,7 +77,7 @@ npm run db:local
 npm run dev
 ```
 
-The tests use an in-memory SQLite adapter for D1 SQL and mocked Torn responses. No real API keys, trades or loans are used. All 52 tests passed during preparation: the original 21 lending tests, 12 authentication/migration tests, and 19 transport, session and custom-key tests. Public live endpoint checks have passed. Signed-in Cloudflare integration and iPhone/Torn PDA testing are still required.
+The tests use an in-memory SQLite adapter for D1 SQL and mocked Torn responses. No real API keys, trades or loans are used. All 59 tests passed during preparation: the original 21 lending tests, 12 authentication/migration tests, 22 transport/session/key tests and 4 diagnostic privacy/shape tests. Public live endpoint checks have passed. Signed-in Cloudflare integration and iPhone/Torn PDA testing are still required.
 
 API cross-origin access is restricted to Torn and the same bank origin. Native Torn PDA requests use its documented `PDA_httpGet` / `PDA_httpPost` functions; supported userscript managers use `GM_xmlhttpRequest`, with browser fetch as a fallback. Keys and session tokens are never put in URLs. Remembered bank sessions use Torn PDA’s per-script PDA_storage when available, then userscript-manager storage, then origin-scoped localStorage. These device stores are not an encryption boundary; the saved session permits access to that account’s bank records until expiry or revocation. Torn API keys stay in memory only. Live Torn account/trade checks therefore need the key again after a page reload. Expired, malformed, other-bank and revoked sessions are discarded. A storage failure keeps only an in-memory login and displays a notice. Logs are disabled in the default Worker config. Database state remains capped for the beta; archiving is needed for large histories.
 

@@ -8,3 +8,6 @@
 /* Keep the labelled logout control reachable on narrow Torn PDA screens. */
 .logout-button{white-space:nowrap;flex-shrink:0}
 @media(max-width:760px){.topbar{height:auto;min-height:65px;flex-wrap:wrap;gap:8px;padding:12px 17px}.top-actions{flex-wrap:wrap;margin-left:auto;justify-content:flex-end}.top-actions .logout-button{min-height:43px}}
+
+.diagnostics-button{white-space:nowrap;flex-shrink:0}.topbar{height:auto;min-height:84px;flex-wrap:wrap;gap:10px;padding-top:12px;padding-bottom:12px}.top-actions{flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
+@media(max-width:760px){.topbar{min-height:65px}.top-actions{gap:8px}}

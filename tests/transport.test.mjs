@@ -195,3 +195,34 @@ test('custom key links request only the bank endpoints and separate lender trade
     assert.equal(params.has('type'), false); assert.equal(params.has('key'), false);
   }
 });
+
+test('a missing PDA response is captured without losing an existing bank session', async () => {
+  bridge(); let requests = 0;
+  globalThis.PDA_httpGet = async () => {requests++; return undefined;};
+  const transport = createTransport(origin, {native: true, store: memory(saved())});
+  await assert.rejects(transport.request('bank'), /HTTP 0/);
+  const report = transport.diagnostics();
+  assert.equal(report.sessionActive, true); assert.equal(report.remembered, true);
+  assert.equal(report.recentRequests[0].outcome, 'missing_http_status');
+  assert.equal(report.recentRequests[0].responseType, 'undefined');
+  assert.equal(report.recentRequests[0].status, null);
+  assert.equal(requests, 1); // Copying diagnostics sends no request and retries no save.
+  assert.ok(!JSON.stringify(report).includes(token));
+});
+
+test('login diagnostics contain neither the entered key nor the returned token', async () => {
+  bridge(); const transport = createTransport(origin, {native: true, store: memory()});
+  await transport.request('link', {key: apiKey}, {remember: true});
+  const report = transport.diagnostics();
+  assert.equal(report.recentRequests[0].operation, 'link');
+  assert.equal(report.recentRequests[0].outcome, 'ok');
+  assert.ok(!JSON.stringify(report).includes(apiKey)); assert.ok(!JSON.stringify(report).includes(token));
+});
+
+test('network diagnostics never include the underlying exception message', async () => {
+  bridge(); globalThis.PDA_httpGet = async () => {throw Error('SENSITIVE_NETWORK_DETAIL');};
+  const transport = createTransport(origin, {native: true, store: memory()});
+  await assert.rejects(transport.request('bank'), /Connection interrupted/);
+  assert.equal(transport.diagnostics().recentRequests[0].outcome, 'network_error');
+  assert.ok(!JSON.stringify(transport.diagnostics()).includes('SENSITIVE_NETWORK_DETAIL'));
+});

@@ -2,12 +2,13 @@
 export function createSessionStore(origin, {native = false} = {}) {
   const key = 'tlb.session.v1:' + new URL(origin).origin;
   if (native && typeof PDA_storage !== 'undefined') {
-    return {read: () => PDA_storage.get(key, null), write: value => PDA_storage.set(key, value), remove: () => PDA_storage.delete(key)};
+    return {kind: 'torn-pda', read: () => PDA_storage.get(key, null), write: value => PDA_storage.set(key, value), remove: () => PDA_storage.delete(key)};
   }
   if (native && typeof GM_getValue === 'function' && typeof GM_setValue === 'function' && typeof GM_deleteValue === 'function') {
-    return {read: () => GM_getValue(key, null), write: value => GM_setValue(key, value), remove: () => GM_deleteValue(key)};
+    return {kind: 'userscript', read: () => GM_getValue(key, null), write: value => GM_setValue(key, value), remove: () => GM_deleteValue(key)};
   }
   return {
+    kind: 'browser',
     read: () => JSON.parse(localStorage.getItem(key) || 'null'),
     write: value => localStorage.setItem(key, JSON.stringify(value)),
     remove: () => localStorage.removeItem(key),
