@@ -35,3 +35,17 @@ test('an empty check key returns the reported 400 shape without ending the bank 
  assert.equal(JSON.stringify(result.data).length,52);
  assert.equal((await call(e,'bank',{token})).status,200);
 });
+test('owner beta invitations use only the bank session, persist once and appear in the access list',async()=>{
+ const e=fixture(),token=(await login(e)).data.token;
+ for(let i=0;i<2;i++)assert.equal((await call(e,'access',{token,body:{action:'invite',id:BORROWER}})).status,200);
+ const list=await call(e,'access',{token});
+ assert.equal(list.status,200);assert.equal(list.data.members.length,1);assert.equal(list.data.members[0].torn_id,BORROWER);
+ const signedIn=await login(e,'borrower');assert.equal(signedIn.status,200);
+ assert.equal((await call(e,'bank',{token:signedIn.data.token})).data.role,'borrower');
+ assert.equal((await call(e,'access',{token:signedIn.data.token,body:{action:'invite',id:OTHER}})).status,403);
+});
+test('invalid beta invitation IDs cannot grant access',async()=>{
+ const e=fixture(),token=(await login(e)).data.token;
+ for(const id of ['', 'Tester', '0', '12345678901'])assert.equal((await call(e,'access',{token,body:{action:'invite',id}})).status,400);
+ assert.deepEqual((await call(e,'access',{token})).data.members,[]);
+});

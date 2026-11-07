@@ -1,20 +1,21 @@
 {
-  "version": "1.1.0-beta.7",
+  "version": "1.1.0-beta.8",
   "build": "passed",
   "tests": {
-    "passed": 71,
+    "passed": 77,
     "failed": 0,
     "original_lending_tests": 21,
-    "authentication_migration_tests": 13,
+    "authentication_migration_tests": 15,
     "transport_session_key_tests": 29,
     "diagnostic_privacy_shape_tests": 4,
-    "sign_in_flow_tests": 4
+    "sign_in_flow_tests": 4,
+    "invite_input_tests": 4
   },
   "wrangler_deploy_dry_run": "beta_3_passed_no_worker_configuration_changes_since",
-  "live_cloudflare_deployment": "beta_6_verified_beta_7_pending_at_commit",
+  "live_cloudflare_deployment": "beta_7_verified_beta_8_pending_at_commit",
   "github_repository": "quill112293/torn-lending-bank",
   "existing_data_migration": "pending_owner_export",
-  "browser_ui_review": "beta_7_notice_and_disabled_controls_build_verified_on_device_retest_pending",
+  "browser_ui_review": "beta_8_invite_controls_build_verified_on_device_retest_pending",
   "iphone_torn_pda_trial": "beta_6_owner_report_eight_bank_reads_and_two_access_reads_200_no_HTTP_0_three_account_checks_400_key_absent_at_report",
   "bank_origin": "https://torn-lending-bank.975y7srs57.workers.dev",
   "signed_in_owner_trial": "beta_5_authentication_logout_and_checks_confirmed_beta_6_remembered_access_and_refresh_confirmed_lending_operations_pending",
@@ -22,5 +23,7 @@
   "logout_button": "top_bar_and_connections_share_logout_handler",
   "diagnostics": "allowlisted_metadata_only_no_automatic_upload_no_keys_tokens_or_bank_records",
   "native_refresh_fix": "single_bank_read_after_login_in_flight_reads_shared_writes_and_session_changes_invalidate_no_automatic_retries",
-  "missing_key_fix": "empty_key_reproduces_400_52_byte_response_client_blocks_invalid_keys_before_network_and_preserves_remembered_session"
+  "missing_key_fix": "empty_key_reproduces_400_52_byte_response_client_blocks_invalid_keys_before_network_and_preserves_remembered_session",
+  "invite_form": "explicit_click_and_app_validation_no_native_constraint_block_clear_pending_success_error_feedback_normalized_ID_inputs_owner_only_server_permissions_preserved",
+  "invite_issue": "owner_reports_no_visible_result_on_tap_exact_device_cause_not_reproduced"
 }
