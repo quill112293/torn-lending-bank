@@ -1,14 +1,16 @@
 # Torn Lending Bank — GitHub / Cloudflare edition
 
-Version 1.1.0-beta.3. Owner: Aaron112293 [3542697].
+Version 1.1.0-beta.4. Owner: Aaron112293 [3542697].
 
 The bank is deployed at https://torn-lending-bank.975y7srs57.workers.dev. The source and two native userscripts are configured for that address and for updates from this GitHub repository. Signed-in owner testing and testing on iPhone/Torn PDA are still pending. Do not retire the existing bank until its records have been exported, imported and checked.
 
 ## What changed
 
+- A labelled Log out button is visible at the top of every signed-in bank screen. It clears the API key and account checks, pauses automatic checks, removes the remembered bank login and requests server-side session revocation. In the fictional demo it exits the demo. Closing or minimizing the panel still preserves the bank login.
+
 - Full bank controls render inside Torn through the userscript. No hosted iframe or ChatGPT login is used.
 - GitHub stores the source and can distribute script updates; Cloudflare Workers hosts the API and optional full-page dashboard, with D1 for shared records.
-- Login verifies the Torn account against Torn's API. The key remains in client memory and passes only to this bank's backend and Torn for requested checks. The backend stores only a digest of a random 12-hour session token. It never stores Torn API keys. Remember this device saves only that bank session, with its original expiry, for up to 12 hours. The Torn API key is never persisted. Closing the panel clears the key but preserves the bank session; Connections → Sign out removes the saved session and revokes it on the server. Signing in again rotates the old login for that account.
+- Login verifies the Torn account against Torn's API. The key remains in client memory and passes only to this bank's backend and Torn for requested checks. The backend stores only a digest of a random 12-hour session token. It never stores Torn API keys. Remember this device saves only that bank session, with its original expiry, for up to 12 hours. The Torn API key is never persisted. Closing the panel clears the key but preserves the bank session; Log out at the top of the bank (also available in Connections) removes the saved session and revokes it on the server. Signing in again rotates the old login for that account.
 - Create key in Torn opens Torn’s official custom-key creation link. Borrower keys request user/basic, profile, personalstats and job; lender keys add trades and trade. The page identifies these permissions before opening Torn. Users review Torn’s permission popup and copy the key back themselves. The script does not create keys in the background or read the key from Torn’s settings page.
 - Native HTTP requests identify the app with a descriptive User-Agent, following Cloudflare’s guidance for workers.dev error 1010. Unexpected responses report a safe status message, never their raw contents. Saves are not automatically retried.
 - Access starts with the owner. Active staff and owner-invited borrower IDs can sign in. Invitations do not grant lender privileges.

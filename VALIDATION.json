@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0-beta.3",
+  "version": "1.1.0-beta.4",
   "build": "passed",
   "tests": {
     "passed": 52,
@@ -8,7 +8,7 @@
     "authentication_migration_tests": 12,
     "transport_session_key_tests": 19
   },
-  "wrangler_deploy_dry_run": "passed",
+  "wrangler_deploy_dry_run": "beta_3_passed_no_worker_configuration_changes_in_beta_4",
   "live_cloudflare_deployment": "beta_3_public_health_and_exact_lender_download_verified",
   "github_repository": "quill112293/torn-lending-bank",
   "existing_data_migration": "pending_owner_export",
@@ -16,5 +16,6 @@
   "iphone_torn_pda_trial": "pending",
   "bank_origin": "https://torn-lending-bank.975y7srs57.workers.dev",
   "signed_in_owner_trial": "pending",
-  "native_http_fix": "descriptive_application_user_agent_verified_against_live_health_endpoint"
+  "native_http_fix": "descriptive_application_user_agent_verified_against_live_health_endpoint",
+  "logout_button": "top_bar_and_connections_share_logout_handler"
 }
