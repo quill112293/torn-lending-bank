@@ -5,7 +5,7 @@ import {createSessionStore} from '../src/session-store.js';
 import {customKeyLink} from '../src/key-link.js';
 
 const origin = 'https://example-bank.workers.dev';
-const token = 'a'.repeat(64), apiKey = 'TEST_ONLY_KEY_001';
+const token = 'a'.repeat(64), apiKey = 'TestOnlyKey00001';
 const saved = () => ({origin, token, expiresAt: Date.now() + 3600000});
 const json = (data, status = 200) => ({status, responseText: JSON.stringify(data)});
 function memory(initial = null) {
@@ -302,4 +302,36 @@ test('clearing a session invalidates a pending read and rejects its old response
   assert.deepEqual(await next, {ok: true});
   gate.finish(json({old: true})); await assert.rejects(old, /login changed/);
   assert.equal(reads, 2); assert.equal(transport.hasSession(), false);
+});
+
+test('missing or malformed keys never send live checks and keep the remembered bank login', async () => {
+  const calls = bridge(), store = memory(saved());
+  const transport = createTransport(origin, {native: true, store});
+  for (const path of ['check', 'trades', 'link']) {
+    for (const key of [undefined, '', ' ', 'short', 'x'.repeat(17), 'bad_key_00000000!', 1234567890123456]) {
+      await assert.rejects(transport.request(path, {key, id: '1'}), /valid 16-character Torn API key/);
+    }
+  }
+  assert.equal(calls.length, 0);
+  assert.equal(transport.diagnostics().recentRequests.length, 0);
+  assert.equal(transport.hasSession(), true);
+  assert.equal(transport.isRemembered(), true);
+  assert.equal(store.value().token, token);
+  assert.deepEqual(await transport.request('bank'), {ok: true});
+  assert.equal(calls.length, 1); // Bank records remain accessible without the Torn key.
+});
+
+test('entering a complete key enables account and trade checks without signing in again', async () => {
+  const calls = bridge();
+  const transport = createTransport(origin, {native: true, store: memory(saved())});
+  await assert.rejects(transport.request('check', {key: ''}), /Connections/);
+  for (const path of ['check', 'trades']) {
+    assert.deepEqual(await transport.request(path, {key: apiKey, id: '1'}), {ok: true});
+  }
+  assert.deepEqual(calls.map(call => new URL(call.url).pathname), ['/api/check', '/api/trades']);
+  for (const call of calls) {
+    assert.equal(call.headers.Authorization, 'Bearer ' + token);
+    assert.equal(JSON.parse(call.body).key, apiKey);
+  }
+  assert.ok(!JSON.stringify(transport.diagnostics()).includes(apiKey));
 });

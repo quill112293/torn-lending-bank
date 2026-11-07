@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {signInAndLoadBank} from '../src/sign-in.js';
 
-const key = 'TEST_ONLY_KEY_001';
+const key = 'TestOnlyKey00001';
 const bank = {state: {revision: 1}, user: {id: '1'}};
 
 test('sign-in verifies the account then reads the bank exactly once', async () => {

@@ -27,3 +27,11 @@ test('borrower cannot change program rules or lift a restriction',async()=>{cons
 test('stale saves are rejected and repeated request IDs do not duplicate funding',async()=>{const e=fixture(),t=(await login(e)).data.token,s=(await call(e,'bank',{token:t})).data.state;const data={action:'topup',payload:{amount:1000000,reference:'TEST RECEIPT'},revision:s.revision,requestId:'same-request'};assert.equal((await call(e,'bank',{token:t,body:data})).status,200);const retry=await call(e,'bank',{token:t,body:data});assert.equal(retry.data.state.ledger.length,1);assert.equal((await call(e,'bank',{token:t,body:{...data,requestId:'new-request'}})).status,409);});
 test('owner migration imports once into an empty bank and preserves ledger',async()=>{const e=fixture(),t=(await login(e)).data.token;await call(e,'bank',{token:t});const s=TB.newState();TB.topup(s,1000000,'Earlier recorded funds');const backup={role:'owner',user:{id:OWNER},state:s};const first=await call(e,'import',{token:t,body:{confirm:'IMPORT',export:backup}});assert.equal(first.status,200,first.data.error);assert.equal((await call(e,'bank',{token:t})).data.state.ledger.length,1);assert.equal((await call(e,'import',{token:t,body:{confirm:'IMPORT',export:backup}})).status,400);});
 test('import rejects a changed owner',()=>{const s=TB.newState();s.staff[0].id=OTHER;assert.throws(()=>validateImport(s),/owner/);});
+test('an empty check key returns the reported 400 shape without ending the bank session',async()=>{
+ const e=fixture(),token=(await login(e)).data.token;
+ const result=await call(e,'check',{token,body:{key:'',id:OWNER}});
+ assert.equal(result.status,400);
+ assert.deepEqual(result.data,{error:'Enter a valid 16-character Torn API key.'});
+ assert.equal(JSON.stringify(result.data).length,52);
+ assert.equal((await call(e,'bank',{token})).status,200);
+});

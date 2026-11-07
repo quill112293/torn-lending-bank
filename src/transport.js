@@ -1,5 +1,6 @@
 import {createSessionStore, validSession} from './session-store.js';
 import {createRequestLog} from './diagnostics.js';
+import {validTornKey} from './api-key.js';
 
 export function normalizeOrigin(value) {
   const u = new URL(value);
@@ -54,6 +55,9 @@ export function createTransport(origin, {native = false, onExpired = () => {}, s
   async function send(path, body, {remember = false} = {}) {
     await ready;
     if (bearer && !hasSession()) await clear();
+    if (body !== undefined && ['link', 'check', 'trades'].includes(path) && !validTornKey(body?.key)) {
+      throw Error(path === 'link' ? 'Enter a valid 16-character Torn API key.' : 'Enter a valid 16-character Torn API key in Connections before running live checks.');
+    }
     const requestEpoch = epoch;
     const method = body === undefined ? 'GET' : 'POST', headers = {Accept: 'application/json'};
     if (body !== undefined) { headers['Content-Type'] = 'application/json'; headers['x-tlb-action'] = '1'; }
@@ -65,7 +69,7 @@ export function createTransport(origin, {native = false, onExpired = () => {}, s
       if (native && typeof PDA_httpGet === 'function' && typeof PDA_httpPost === 'function') {
         driver = 'Torn PDA';
         // Cloudflare recommends an application User-Agent for native HTTP clients.
-        headers['User-Agent'] = 'TornLendingBank/1.1.0-beta.6 (TornPDA userscript)';
+        headers['User-Agent'] = 'TornLendingBank/1.1.0-beta.7 (TornPDA userscript)';
         let timer;
         try {
           res = await Promise.race([
@@ -75,7 +79,7 @@ export function createTransport(origin, {native = false, onExpired = () => {}, s
         } finally { clearTimeout(timer); }
       } else if (native && typeof GM_xmlhttpRequest === 'function') {
         driver = 'userscript';
-        headers['User-Agent'] = 'TornLendingBank/1.1.0-beta.6 (userscript)';
+        headers['User-Agent'] = 'TornLendingBank/1.1.0-beta.7 (userscript)';
         res = await new Promise((resolve, reject) => GM_xmlhttpRequest({method, url, headers, data: payload, timeout: 25000, anonymous: true, onload: resolve, onerror: reject, ontimeout: reject}));
       } else {
         const r = await fetch(url, {method, headers, body: payload, credentials: 'omit', cache: 'no-store', signal: AbortSignal.timeout(25000)});
