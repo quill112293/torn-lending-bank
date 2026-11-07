@@ -226,3 +226,80 @@ test('network diagnostics never include the underlying exception message', async
   assert.equal(transport.diagnostics().recentRequests[0].outcome, 'network_error');
   assert.ok(!JSON.stringify(transport.diagnostics()).includes('SENSITIVE_NETWORK_DETAIL'));
 });
+
+function delayedResponse() {
+  let start, finish;
+  const started = new Promise(resolve => {start = resolve;});
+  const response = new Promise(resolve => {finish = resolve;});
+  return {started, finish, send: () => {start(); return response;}};
+}
+
+test('overlapping bank refreshes share one native request but later refreshes read fresh data', async () => {
+  bridge(); const gate = delayedResponse(); let reads = 0;
+  globalThis.PDA_httpGet = () => {reads++; return reads === 1 ? gate.send() : json({revision: 2});};
+  const transport = createTransport(origin, {native: true, store: memory(saved())});
+  const first = transport.request('bank'); await gate.started;
+  const second = transport.request('bank');
+  assert.equal(first, second);
+  gate.finish(json({revision: 1}));
+  assert.deepEqual(await Promise.all([first, second]), [{revision: 1}, {revision: 1}]);
+  assert.equal(reads, 1);
+  assert.deepEqual(await transport.request('bank'), {revision: 2});
+  assert.equal(reads, 2);
+  assert.equal(transport.diagnostics().recentRequests.length, 2);
+});
+
+test('an undefined shared PDA response clears the pending read so manual retry can succeed', async () => {
+  bridge(); const gate = delayedResponse(); let reads = 0;
+  globalThis.PDA_httpGet = () => {reads++; return reads === 1 ? gate.send() : json({ok: true});};
+  const transport = createTransport(origin, {native: true, store: memory(saved())});
+  const first = transport.request('bank'); await gate.started;
+  const second = transport.request('bank');
+  const results = Promise.allSettled([first, second]); gate.finish(undefined);
+  for (const result of await results) {
+    assert.equal(result.status, 'rejected'); assert.match(result.reason.message, /HTTP 0/);
+  }
+  assert.equal(reads, 1); assert.equal(transport.hasSession(), true);
+  assert.deepEqual(await transport.request('bank'), {ok: true}); assert.equal(reads, 2);
+});
+
+test('writes are never combined and a completed write starts a fresh bank read', async () => {
+  const calls = bridge(), old = delayedResponse(), fresh = delayedResponse(); let reads = 0;
+  globalThis.PDA_httpGet = () => (++reads === 1 ? old : fresh).send();
+  const transport = createTransport(origin, {native: true, store: memory(saved())});
+  const beforeWrite = transport.request('bank'); await old.started;
+  await Promise.all([transport.request('bank', {action: 'one'}), transport.request('bank', {action: 'two'})]);
+  assert.equal(calls.length, 2);
+  assert.deepEqual(calls.map(call => JSON.parse(call.body)), [{action: 'one'}, {action: 'two'}]);
+  const afterWrite = transport.request('bank'); await fresh.started;
+  assert.notEqual(beforeWrite, afterWrite);
+  old.finish(json({revision: 1})); await beforeWrite;
+  assert.equal(transport.request('bank'), afterWrite); // Old completion cannot evict the new read.
+  fresh.finish(json({revision: 2})); assert.deepEqual(await afterWrite, {revision: 2});
+  assert.equal(reads, 2);
+});
+
+test('a bank read started during a write is not reused after that write completes', async () => {
+  bridge(); const write = delayedResponse(), read = delayedResponse(); let reads = 0;
+  globalThis.PDA_httpPost = write.send;
+  globalThis.PDA_httpGet = () => (++reads === 1 ? read.send() : json({revision: 2}));
+  const transport = createTransport(origin, {native: true, store: memory(saved())});
+  const mutation = transport.request('check', {key: apiKey, id: '1'}); await write.started;
+  const duringWrite = transport.request('bank'); await read.started;
+  write.finish(json({ok: true})); await mutation;
+  assert.deepEqual(await transport.request('bank'), {revision: 2});
+  read.finish(json({revision: 1})); await duringWrite;
+  assert.equal(reads, 2);
+});
+
+test('clearing a session invalidates a pending read and rejects its old response', async () => {
+  bridge(); const gate = delayedResponse(); let reads = 0;
+  globalThis.PDA_httpGet = () => (++reads === 1 ? gate.send() : json({ok: true}));
+  const transport = createTransport(origin, {native: true, store: memory(saved())});
+  const old = transport.request('bank'); await gate.started;
+  await transport.clear();
+  const next = transport.request('bank'); assert.notEqual(next, old);
+  assert.deepEqual(await next, {ok: true});
+  gate.finish(json({old: true})); await assert.rejects(old, /login changed/);
+  assert.equal(reads, 2); assert.equal(transport.hasSession(), false);
+});

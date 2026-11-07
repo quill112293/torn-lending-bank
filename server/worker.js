@@ -16,7 +16,7 @@ export async function handle(request,env){
  let result;const srv=createServer(env);const {database,response,body,identity,rateLimit,loadState,saveState,allowed,torn,flagConfirmedProfile}=srv;
  try{
   if(request.method==='OPTIONS')result=new Response(null,{status:204});
-  else if(path==='/api/health'&&request.method==='GET')result=response({ok:true,version:'1.1.0-beta.5'});
+  else if(path==='/api/health'&&request.method==='GET')result=response({ok:true,version:'1.1.0-beta.6'});
   else if(path==='/api/link'&&request.method==='POST'){
    const ip=request.headers.get('cf-connecting-ip')||'local';await rateLimit('login:'+await digest(ip),5);
    const a=await body(request);const p=(await torn(a.key,'user/profile')).profile;

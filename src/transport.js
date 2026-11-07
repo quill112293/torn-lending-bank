@@ -11,6 +11,7 @@ export function createTransport(origin, {native = false, onExpired = () => {}, s
   origin = normalizeOrigin(origin);
   let bearer = '', expiresAt = 0, remembered = false, notice = '', epoch = 0, writes = Promise.resolve();
   const requestLog = createRequestLog();
+  let bankRead = null;
   const hasSession = () => !!bearer && expiresAt > Date.now();
   // Serialize persistence so a slow save cannot restore a session after sign-out.
   function persist(value) {
@@ -31,10 +32,26 @@ export function createTransport(origin, {native = false, onExpired = () => {}, s
     } catch { notice = 'Saved login is unavailable. You can still sign in for this session.'; }
   })();
   async function clear() {
+    bankRead = null;
     epoch++; bearer = ''; expiresAt = 0; remembered = false; notice = '';
     await persist(null);
   }
-  async function request(path, body, {remember = false} = {}) {
+  // Share only in-flight bank reads. Never cache results or combine writes.
+  // A write or session change invalidates the read so its next refresh is fresh.
+  function request(path, body, options = {}) {
+    if (body !== undefined) {
+      bankRead = null;
+      return send(path, body, options).finally(() => { bankRead = null; });
+    }
+    if (path !== 'bank') return send(path, body, options);
+    if (bankRead) return bankRead;
+    const pending = send(path, body, options).finally(() => {
+      if (bankRead === pending) bankRead = null;
+    });
+    bankRead = pending;
+    return pending;
+  }
+  async function send(path, body, {remember = false} = {}) {
     await ready;
     if (bearer && !hasSession()) await clear();
     const requestEpoch = epoch;
@@ -48,7 +65,7 @@ export function createTransport(origin, {native = false, onExpired = () => {}, s
       if (native && typeof PDA_httpGet === 'function' && typeof PDA_httpPost === 'function') {
         driver = 'Torn PDA';
         // Cloudflare recommends an application User-Agent for native HTTP clients.
-        headers['User-Agent'] = 'TornLendingBank/1.1.0-beta.5 (TornPDA userscript)';
+        headers['User-Agent'] = 'TornLendingBank/1.1.0-beta.6 (TornPDA userscript)';
         let timer;
         try {
           res = await Promise.race([
@@ -58,7 +75,7 @@ export function createTransport(origin, {native = false, onExpired = () => {}, s
         } finally { clearTimeout(timer); }
       } else if (native && typeof GM_xmlhttpRequest === 'function') {
         driver = 'userscript';
-        headers['User-Agent'] = 'TornLendingBank/1.1.0-beta.5 (userscript)';
+        headers['User-Agent'] = 'TornLendingBank/1.1.0-beta.6 (userscript)';
         res = await new Promise((resolve, reject) => GM_xmlhttpRequest({method, url, headers, data: payload, timeout: 25000, anonymous: true, onload: resolve, onerror: reject, ontimeout: reject}));
       } else {
         const r = await fetch(url, {method, headers, body: payload, credentials: 'omit', cache: 'no-store', signal: AbortSignal.timeout(25000)});

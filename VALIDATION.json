@@ -1,23 +1,25 @@
 {
-  "version": "1.1.0-beta.5",
+  "version": "1.1.0-beta.6",
   "build": "passed",
   "tests": {
-    "passed": 59,
+    "passed": 68,
     "failed": 0,
     "original_lending_tests": 21,
     "authentication_migration_tests": 12,
-    "transport_session_key_tests": 22,
-    "diagnostic_privacy_shape_tests": 4
+    "transport_session_key_tests": 27,
+    "diagnostic_privacy_shape_tests": 4,
+    "sign_in_flow_tests": 4
   },
   "wrangler_deploy_dry_run": "beta_3_passed_no_worker_configuration_changes_since",
-  "live_cloudflare_deployment": "beta_4_verified_beta_5_pending",
+  "live_cloudflare_deployment": "beta_5_verified_beta_6_pending",
   "github_repository": "quill112293/torn-lending-bank",
   "existing_data_migration": "pending_owner_export",
-  "browser_ui_review": "beta_4_logout_verified_beta_5_copy_pending",
-  "iphone_torn_pda_trial": "beta_4_dashboard_loaded_then_HTTP_0_reported_beta_5_diagnostic_report_needed",
+  "browser_ui_review": "beta_4_logout_and_beta_5_copy_button_verified_no_layout_changes_in_beta_6",
+  "iphone_torn_pda_trial": "beta_5_diagnostics_confirm_login_logout_check_bank_and_remembered_storage_duplicate_bank_read_returned_undefined_beta_6_retest_pending",
   "bank_origin": "https://torn-lending-bank.975y7srs57.workers.dev",
-  "signed_in_owner_trial": "pending",
+  "signed_in_owner_trial": "beta_5_authentication_and_bank_reads_confirmed_by_owner_diagnostics_lending_operations_pending",
   "native_http_fix": "descriptive_application_user_agent_verified_against_live_health_endpoint",
   "logout_button": "top_bar_and_connections_share_logout_handler",
-  "diagnostics": "allowlisted_metadata_only_no_automatic_upload_no_keys_tokens_or_bank_records"
+  "diagnostics": "allowlisted_metadata_only_no_automatic_upload_no_keys_tokens_or_bank_records",
+  "native_refresh_fix": "single_bank_read_after_login_in_flight_reads_shared_writes_and_session_changes_invalidate_no_automatic_retries"
 }
