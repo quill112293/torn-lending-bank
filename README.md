@@ -125,3 +125,6 @@ Rules now includes Copy diagnostic data, an owner export, and a confirmed owner-
 
 ### Beta.13 — Lender button locations
 Lender Log out appears only in Connections, and Copy diagnostic data appears only in Rules. Borrowers keep their existing tabs and diagnostic buttons in the header, Connections and sign-in screens. No borrower Rules tab was added.
+
+### Beta.15 — Bank page and movable panel
+Both scripts show the Bank launcher and panel only on Torn bank.php. Leaving that page unmounts the panel; returning shows the launcher. Broad userscript match metadata allows detection of in-page navigation, but no bank client is mounted on other pages. Drag the title handle or launcher with touch/mouse, or use arrow keys while focused. Positions are stored locally and clamped to the viewport. The standalone dashboard is unchanged. Build and 87 tests passed; physical iPhone drag testing remains pending.

@@ -1,8 +1,8 @@
 {
-  "version": "1.1.0-beta.13",
+  "version": "1.1.0-beta.15",
   "build": "passed",
   "tests": {
-    "passed": 84,
+    "passed": 87,
     "failed": 0,
     "original_lending_tests": 21,
     "authentication_migration_tests": 17,
@@ -10,10 +10,12 @@
     "diagnostic_privacy_shape_tests": 4,
     "sign_in_flow_tests": 4,
     "invite_input_tests": 4,
-    "loan_request_display_lifecycle_tests": 5
+    "loan_request_display_lifecycle_tests": 5,
+    "eligibility_tests": 1,
+    "bank_page_position_tests": 2
   },
   "wrangler_deploy_dry_run": "beta_3_passed_no_worker_configuration_changes_since",
-  "live_cloudflare_deployment": "beta_13_pending_at_commit",
+  "live_cloudflare_deployment": "beta_15_pending_at_commit",
   "github_repository": "quill112293/torn-lending-bank",
   "existing_data_migration": "pending_owner_export",
   "browser_ui_review": "beta_13_role_conditions_checked_build_passed_native_retest_pending",
@@ -28,5 +30,6 @@
   "invite_form": "explicit_click_and_app_validation_no_native_constraint_block_clear_pending_success_error_feedback_normalized_ID_inputs_owner_only_server_permissions_preserved",
   "invite_issue": "owner_reports_no_visible_result_on_tap_exact_device_cause_not_reproduced",
   "loan_request_fix": "payment_intents_and_extensions_visible_per_loan_and_all_loans_linked_receipt_review_statuses_modal_errors_visible_no_live_records_changed",
-  "diagnostics_location": "lender_rules_only_borrower_locations_preserved"
+  "diagnostics_location": "lender_rules_only_borrower_locations_preserved",
+  "native_panel": "bank_page_only_draggable_panel_and_launcher_local_position_storage_viewport_clamping_native_device_retest_pending"
 }

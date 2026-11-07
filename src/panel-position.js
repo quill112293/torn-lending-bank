@@ -1,0 +1,2 @@
+export function isBankPage(url){try{const u=new URL(url);return u.protocol==='https:'&&['www.torn.com','torn.com'].includes(u.hostname)&&u.pathname==='/bank.php';}catch{return false;}}
+export function clampPosition(p,width,height,viewportWidth,viewportHeight){return {x:Math.max(0,Math.min(Number(p.x)||0,Math.max(0,viewportWidth-width))),y:Math.max(0,Math.min(Number(p.y)||0,Math.max(0,viewportHeight-height)))};}
