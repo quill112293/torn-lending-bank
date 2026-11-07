@@ -1,6 +1,6 @@
 # Torn Lending Bank — GitHub / Cloudflare edition
 
-Version 1.1.0-beta.2. Owner: Aaron112293 [3542697].
+Version 1.1.0-beta.3. Owner: Aaron112293 [3542697].
 
 The bank is deployed at https://torn-lending-bank.975y7srs57.workers.dev. The source and two native userscripts are configured for that address and for updates from this GitHub repository. Signed-in owner testing and testing on iPhone/Torn PDA are still pending. Do not retire the existing bank until its records have been exported, imported and checked.
 
@@ -8,7 +8,9 @@ The bank is deployed at https://torn-lending-bank.975y7srs57.workers.dev. The so
 
 - Full bank controls render inside Torn through the userscript. No hosted iframe or ChatGPT login is used.
 - GitHub stores the source and can distribute script updates; Cloudflare Workers hosts the API and optional full-page dashboard, with D1 for shared records.
-- Login verifies the Torn account against Torn's API. The key remains in client memory and passes only to this bank's backend and Torn for requested checks. The backend stores only a digest of a random 12-hour session token. It never stores Torn API keys. Reloading Torn requires a fresh login; signing in again rotates the old login for that account.
+- Login verifies the Torn account against Torn's API. The key remains in client memory and passes only to this bank's backend and Torn for requested checks. The backend stores only a digest of a random 12-hour session token. It never stores Torn API keys. Remember this device saves only that bank session, with its original expiry, for up to 12 hours. The Torn API key is never persisted. Closing the panel clears the key but preserves the bank session; Connections → Sign out removes the saved session and revokes it on the server. Signing in again rotates the old login for that account.
+- Create key in Torn opens Torn’s official custom-key creation link. Borrower keys request user/basic, profile, personalstats and job; lender keys add trades and trade. The page identifies these permissions before opening Torn. Users review Torn’s permission popup and copy the key back themselves. The script does not create keys in the background or read the key from Torn’s settings page.
+- Native HTTP requests identify the app with a descriptive User-Agent, following Cloudflare’s guidance for workers.dev error 1010. Unexpected responses report a safe status message, never their raw contents. Saves are not automatically retried.
 - Access starts with the owner. Active staff and owner-invited borrower IDs can sign in. Invitations do not grant lender privileges.
 - Original calculation engine, trade reconciliation and role rules are preserved. Only the owner can lift restrictions.
 - The owner can import an existing owner export once into an empty bank. No existing records are included in this repository or archive.
@@ -70,9 +72,9 @@ npm run db:local
 npm run dev
 ```
 
-The tests use an in-memory SQLite adapter for D1 SQL and mocked Torn responses. No real API keys, trades or loans are used. All 33 tests passed during preparation, including the original 21 lending tests and 12 authentication/migration tests. Public live endpoint checks have passed. Signed-in Cloudflare integration and iPhone/Torn PDA testing are still required.
+The tests use an in-memory SQLite adapter for D1 SQL and mocked Torn responses. No real API keys, trades or loans are used. All 52 tests passed during preparation: the original 21 lending tests, 12 authentication/migration tests, and 19 transport, session and custom-key tests. Public live endpoint checks have passed. Signed-in Cloudflare integration and iPhone/Torn PDA testing are still required.
 
-API cross-origin access is restricted to Torn and the same bank origin. Native Torn PDA requests use its documented `PDA_httpGet` / `PDA_httpPost` functions; supported userscript managers use `GM_xmlhttpRequest`, with browser fetch as a fallback. Keys and session tokens are not put in URLs or local storage. Logs are disabled in the default Worker config. Database state remains capped for the beta; archiving is needed for large histories.
+API cross-origin access is restricted to Torn and the same bank origin. Native Torn PDA requests use its documented `PDA_httpGet` / `PDA_httpPost` functions; supported userscript managers use `GM_xmlhttpRequest`, with browser fetch as a fallback. Keys and session tokens are never put in URLs. Remembered bank sessions use Torn PDA’s per-script PDA_storage when available, then userscript-manager storage, then origin-scoped localStorage. These device stores are not an encryption boundary; the saved session permits access to that account’s bank records until expiry or revocation. Torn API keys stay in memory only. Live Torn account/trade checks therefore need the key again after a page reload. Expired, malformed, other-bank and revoked sessions are discarded. A storage failure keeps only an in-memory login and displays a notice. Logs are disabled in the default Worker config. Database state remains capped for the beta; archiving is needed for large histories.
 
 ## Deployment status
 
@@ -92,3 +94,8 @@ API cross-origin access is restricted to Torn and the same bank origin. Native T
 - https://developers.cloudflare.com/workers/static-assets/binding/
 - https://developers.cloudflare.com/d1/reference/migrations/
 - https://github.com/Manuito83/torn-pda/blob/master/userscripts/README.md
+
+- https://github.com/Manuito83/torn-pda/blob/master/userscripts/TornPDA_Storage.md
+- https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-1xxx-errors/error-1010/
+- https://www.torn.com/forums.php?a=0&b=0&f=63&p=threads&t=16249068
+- https://www.torn.com/swagger.php
