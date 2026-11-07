@@ -119,3 +119,6 @@ API cross-origin access is restricted to Torn and the same bank origin. Native T
 - https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-1xxx-errors/error-1010/
 - https://www.torn.com/forums.php?a=0&b=0&f=63&p=threads&t=16249068
 - https://www.torn.com/swagger.php
+
+### Beta.10 — Rules tools
+Rules now includes Copy diagnostic data, an owner export, and a confirmed owner-only bank reset. Reset clears bank records, custom rules and staff, returns the bank offline, and keeps beta invitations and sessions. It does not change Torn money or items. No live reset was performed during release.
