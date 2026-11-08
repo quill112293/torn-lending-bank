@@ -13,7 +13,13 @@ function fixture(){const DB=db();return {DB,ASSETS:{fetch:async()=>new Response(
 async function call(env,path,{token,body,origin='https://www.torn.com',ip='1.2.3.4',method,extra={}}={}){const headers={origin,'cf-connecting-ip':ip,...extra};if(token)headers.authorization='Bearer '+token;if(body!==undefined){headers['content-type']='application/json';headers['x-tlb-action']='1';}const r=await handle(new Request('https://bank.example/api/'+path,{method:method||(body===undefined?'GET':'POST'),headers,body:body===undefined?undefined:JSON.stringify(body)}),env);return {status:r.status,headers:r.headers,data:await r.json()};}
 async function login(env,key='owner',ip='1.2.3.4'){const r=await call(env,'link',{body:{key:key.padEnd(16,'0')},ip});return r;}
 const realFetch=globalThis.fetch;
-globalThis.fetch=async (url,options)=>{assert.equal(new URL(url).hostname,'api.torn.com');const key=options.headers.Authorization.slice(7),id=keys[key];if(!id)return Response.json({error:{error:'Invalid key'}});return Response.json({profile:{id:Number(id),name:id===OWNER?'Aaron112293':'Tester',status:{state:'Okay'},faction_id:1}});};
+const apiTrades=new Map();
+globalThis.fetch=async (url,options)=>{assert.equal(new URL(url).hostname,'api.torn.com');const key=options.headers.Authorization.slice(7),id=keys[key];if(!id)return Response.json({error:{error:'Invalid key'}});
+ const u=new URL(url);
+ if(u.pathname==='/v2/user/trades')return Response.json({trades:[...apiTrades.values()].filter(t=>[String(t.user.id),String(t.trader.id)].includes(id)&&Boolean(t.completed_at)===(u.searchParams.get('cat')==='finished'))});
+ const tradeId=u.pathname.match(/^\/v2\/user\/(\d+)\/trade$/)?.[1];
+ if(tradeId){const t=apiTrades.get(tradeId);return t&&[String(t.user.id),String(t.trader.id)].includes(id)?Response.json({trade:t}):Response.json({error:{error:'Trade inaccessible'}});}
+ return Response.json({profile:{id:Number(id),name:id===OWNER?'Aaron112293':'Tester',status:{state:'Okay'},faction_id:1}});};
 test.after(()=>{globalThis.fetch=realFetch;});
 test('anonymous and forged platform headers cannot read the bank',async()=>{const e=fixture();assert.equal((await call(e,'bank',{extra:{'oai-authenticated-user-id':OWNER}})).status,401);});
 test('owner login uses Torn identity, stores only token digest, and no API key',async()=>{const e=fixture(),r=await login(e);assert.equal(r.status,200);const t=r.data.token;assert.match(t,/^[a-f0-9]{64}$/);const session=e.DB.sqlite.prepare('SELECT * FROM sessions').get();assert.equal(session.token_hash,await digest(t));assert.notEqual(session.token_hash,t);assert.equal((await call(e,'bank',{token:t})).data.role,'owner');const dump=['identities','sessions','bank_state','api_limits'].map(n=>e.DB.sqlite.prepare('SELECT * FROM '+n).all());assert.ok(!JSON.stringify(dump).includes('owner'.padEnd(16,'0')));});
@@ -94,4 +100,26 @@ test('bank reset requires owner, exact confirmation and current revision; retrie
  assert.equal((await call(e,'bank',{token:b})).status,200);
  r=await send(o,'topup',{amount:2000,reference:'new funding'},'fund2',s.revision);s=r.data.state;
  r=await send(o,'resetBank',{confirm:'RESET BANK'},'reset-once',s.revision);assert.equal(r.status,200);assert.equal(r.data.state.ledger.length,1);
+});
+
+test('API repayment selection watches unfinished trades and credits actual completed cash exactly once',async()=>{
+ const e=fixture(),o=(await login(e)).data.token;
+ await call(e,'access',{token:o,body:{action:'invite',id:BORROWER}});
+ const b=(await login(e,'borrower')).data.token;
+ await call(e,'bank',{token:o});
+ const s=TB.newState();s.loans=[{id:'repay-loan',borrowerId:BORROWER,name:'Tester',lane:'external',product:'bank',principal:100e6,rate:.005,freeDays:0,start:TB.today(),maturity:TB.addDays(TB.today(),60),status:'active',payments:[],extensions:[],rules:TB.clone(s.rules),issuer:OWNER}];
+ e.DB.sqlite.prepare("UPDATE bank_state SET data=?,revision=0 WHERE id='main'").run(JSON.stringify(s));
+ const trade={id:811,user:{id:Number(OWNER)},trader:{id:Number(BORROWER)},completed_at:null,description:'Loan repayment',items:[{user_id:Number(BORROWER),type:'Money',details:{amount:12e6}}]};apiTrades.set('811',trade);
+ apiTrades.set('812',{...trade,id:812,user:{id:Number(OTHER)}});
+ const request=body=>call(e,'trades',{token:b,body:{key:'borrower'.padEnd(16,'0'),...body}});
+ let r=await request({action:'list',loanId:'repay-loan'});assert.equal(r.status,200,r.data.error);assert.deepEqual(r.data.trades.map(t=>t.id),[811]);
+ r=await request({action:'link',loanId:'repay-loan',tradeId:'812'});assert.equal(r.status,400);
+ r=await request({action:'link',loanId:'repay-loan',tradeId:'811',amount:999e6});assert.equal(r.status,200,r.data.error);
+ let state=(await call(e,'bank',{token:o})).data.state;assert.equal(state.loans[0].payments.length,0);assert.equal(state.paymentIntents[0].amount,null);
+ trade.completed_at=Math.floor(Date.now()/1000);
+ r=await request({linkedOnly:true});assert.equal(r.status,200,r.data.error);
+ state=(await call(e,'bank',{token:o})).data.state;assert.equal(state.loans[0].payments.length,1);assert.equal(state.loans[0].payments[0].credited,12e6);assert.equal(state.paymentIntents[0].status,'received');assert.equal(state.pendingPayments[0].source,'Verified Torn API completed trade');
+ r=await request({linkedOnly:true});assert.equal(r.status,200);
+ state=(await call(e,'bank',{token:o})).data.state;assert.equal(state.loans[0].payments.length,1);
+ apiTrades.clear();
 });
