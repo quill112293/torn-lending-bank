@@ -156,3 +156,11 @@ Validation: build and 96 tests passed, including authenticated API tests, privac
 - Full bank reset is now under Manage; Rules retains diagnostics and a link to management. Test cleanup is separate from full bank reset. No real records were reset during development.
 
 Validation: build and 106 tests passed. Additional coverage includes owner-assigned eligibility, invitation cards, test/live record separation, unchanged money ledgers, archive privacy, receipt reuse prevention and trust/strike isolation. Rendered Users/Manage controls passed Happy DOM checks. Physical Torn PDA testing remains pending.
+
+## beta.19 — per-user history and owner clearing
+
+History now filters by user (actor or affected account), activity, date range, live/TEST and search text. Each selected Users card has the same per-user log. New audit entries retain affected user IDs and references; older entries are associated where recorded IDs/references permit it. Status updates retain before/after settings. Archived record links remain searchable.
+
+Owner-only Clear selected history and Clear all history show counts, warn about shared entries and require exact confirmation. They affect activity entries only, leaving loan records, payments, test archives and the cash ledger unchanged. A new History cleared marker records the operation. Revision and request-id protection still apply. Filtered history exports to CSV with formula-like text escaped. Lists show 100 entries at a time.
+
+Validation: build and 113 tests passed; rendered History, Users and Manage controls checked in Happy DOM. Physical Torn PDA trial pending. Beta/public environment separation has been discussed but is not configured in this release.

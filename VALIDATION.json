@@ -1,12 +1,12 @@
 {
-  "version": "1.1.0-beta.18",
+  "version": "1.1.0-beta.19",
   "build": "passed",
   "tests": {
-    "passed": 106,
+    "passed": 113,
     "failed": 0
   },
   "wrangler_deploy_dry_run": "beta_3_passed_no_worker_configuration_changes_since",
-  "live_cloudflare_deployment": "beta_18_pending_at_commit",
+  "live_cloudflare_deployment": "beta_19_pending_at_commit",
   "github_repository": "quill112293/torn-lending-bank",
   "existing_data_migration": "pending_owner_export",
   "browser_ui_review": "happy_dom_rendered_controls_passed_chromium_download_unavailable_iphone_pending",
@@ -27,5 +27,6 @@
   "verified_cash_privacy": "owner_all_vault_except_owner_staff_self_borrower_none_server_enforced",
   "users": "owner_status_assignment_beta_invitee_cards_auto_detected_by_applications",
   "test_mode": "real_funds_test_status_separate_views_no_simulation",
-  "manage": "owner_only_preview_exact_confirmation_archive_keeps_real_ledger"
+  "manage": "owner_only_preview_exact_confirmation_archive_keeps_real_ledger",
+  "history": "user_activity_date_test_search_filters_per_user_logs_owner_confirmed_clear_no_financial_mutations"
 }
