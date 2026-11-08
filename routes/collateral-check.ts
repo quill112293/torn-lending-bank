@@ -1,0 +1,4 @@
+import {createServer} from '../server/context.js';
+import {role} from '../lib/operations.js';
+import {verifyCollateral} from '../lib/collateral-proof.js';
+export function route(env){const srv=createServer(env);return {async POST(req){try{const u=await srv.identity(req),a=await srv.body(req);if(role(await srv.loadState(),u.torn_id)==='borrower')return srv.response({error:'Receiving staff access required.'},403);await srv.rateLimit(u.platformId+':collateral',4);await srv.ownKey(a.key,u.torn_id);if(!/^\d{1,16}$/.test(String(a.tradeId)))throw Error('Enter the Torn API trade ID.');const trade=(await srv.torn(a.key,'user/'+a.tradeId+'/trade')).trade;const s=await srv.loadState();if(role(s,u.torn_id)==='borrower')throw Error('Staff access ended.');verifyCollateral(s,u.torn_id,a.loanId,trade);await srv.saveState(s,s.revision);return srv.response(srv.view(s,u));}catch(e){return srv.response({error:e.message},e.status||400);}}};}

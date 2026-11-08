@@ -11,3 +11,5 @@
 
 .diagnostics-button{white-space:nowrap;flex-shrink:0}.topbar{height:auto;min-height:84px;flex-wrap:wrap;gap:10px;padding-top:12px;padding-bottom:12px}.top-actions{flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
 @media(max-width:760px){.topbar{min-height:65px}.top-actions{gap:8px}}
+
+.status-light{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px}.status-light.online{background:#5cdda6}.status-light.offline{background:#ff737d}

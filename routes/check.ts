@@ -9,7 +9,8 @@ async function POST(req:Request){try{
  const profile=(await torn(a.key,'user/'+target+'/profile')).profile;if(String(profile?.id)!==target)throw Error('The Torn profile response did not match the requested account.');
  const info:any={profile:{id:profile.id,name:profile.name,faction_id:profile.faction_id,status:profile.status},checkedAt:new Date().toISOString()};
  if(target===u.torn_id){for(const [kind,path] of [['stats','user/personalstats?stat=networth'],['job','user/job']]){try{info[kind]=await torn(a.key,path);}catch(e:any){info[kind+'Error']=e.message;}}
- const stored={...info.profile,checkedAt:info.checkedAt,networth:info.stats?.personalstats?.find((v:any)=>v.name==='networth')?.value,job:info.job?.job};
+ const owner=await database().prepare('SELECT profile FROM identities WHERE torn_id=?').bind('3542697').first();const ownerProfile=owner?JSON.parse(owner.profile):{};
+ const stored={factionMember:!!profile.faction_id&&profile.faction_id===(target==='3542697'?profile.faction_id:ownerProfile.faction_id),...info.profile,checkedAt:info.checkedAt,networth:info.stats?.personalstats?.find((v:any)=>v.name==='networth')?.value,job:info.job?.job};
  await database().prepare('UPDATE identities SET profile=?,name=?,verified_at=? WHERE id=?').bind(JSON.stringify(stored),profile.name,info.checkedAt,u.platformId).run();}
  if(flagConfirmedProfile(s,profile,u.torn_id)){await saveState(s,s.revision);info.banFlagged=true;}
  return response(info);

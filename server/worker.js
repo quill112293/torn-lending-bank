@@ -5,7 +5,9 @@ import {route as bank} from '../routes/bank.ts';
 import {route as check} from '../routes/check.ts';
 import {route as trades} from '../routes/trades.ts';
 import {route as market} from '../routes/market.ts';
-const routes={bank,check,trades,market};
+import {route as staffCash} from '../routes/staff-cash.ts';
+import {route as collateralCheck} from '../routes/collateral-check.ts';
+const routes={bank,check,trades,market,'staff-cash':staffCash,'collateral-check':collateralCheck};
 const origins=new Set(['https://www.torn.com','https://torn.com']);
 export function allowedOrigin(request){const origin=request.headers.get('origin');return !origin||origin===new URL(request.url).origin||origins.has(origin);}
 export async function handle(request,env){
@@ -16,7 +18,7 @@ export async function handle(request,env){
  let result;const srv=createServer(env);const {database,response,body,identity,rateLimit,loadState,saveState,allowed,torn,flagConfirmedProfile}=srv;
  try{
   if(request.method==='OPTIONS')result=new Response(null,{status:204});
-  else if(path==='/api/health'&&request.method==='GET')result=response({ok:true,version:'1.1.0-beta.15'});
+  else if(path==='/api/health'&&request.method==='GET')result=response({ok:true,version:'1.1.0-beta.17'});
   else if(path==='/api/link'&&request.method==='POST'){
    const ip=request.headers.get('cf-connecting-ip')||'local';await rateLimit('login:'+await digest(ip),5);
    const a=await body(request);const p=(await torn(a.key,'user/profile')).profile;
