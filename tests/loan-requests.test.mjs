@@ -23,7 +23,7 @@ test('saved borrower payment and extension requests are visible on the selected 
 test('lender sees both saved request types and review controls on the list and selected loan',()=>{
  for(const loanId of [undefined,'loan']){
   const html=render(requested(),true,loanId);
-  assert.match(html,/Verify in Torn/);assert.match(html,/Review extension/);
+  assert.match(html,/Record received payment/);assert.match(html,/Review extension/);
   assert.match(html,/\$10,000,000/);assert.match(html,/2027-01-13/);
  }
  assert.doesNotMatch(render(requested(),true,'other-loan'),/More time needed|\$10,000,000/);
@@ -34,7 +34,7 @@ test('a payment request moves through receipt review to accepted payment exactly
  s=applyAction(s,owner,'payment',{id:'loan',intentId,cash:10e6,recipient:owner,date:today,reference:'TEST-RECEIPT-1'},today);
  assert.equal(s.paymentIntents[0].status,'review');assert.equal(s.loans[0].payments.length,0);
  assert.match(render(s,true,'loan'),/Review payment/);
- assert.doesNotMatch(render(s,true,'loan'),/Verify in Torn/);
+ assert.doesNotMatch(render(s,true,'loan'),/Record received payment/);
  assert.throws(()=>applyAction(s,owner,'payment',{id:'loan',intentId,cash:10e6,recipient:owner,date:today,reference:'TEST-RECEIPT-2'},today),/pending payment request/);
  const paymentId=s.pendingPayments[0].id;
  s=applyAction(s,owner,'acceptPayment',{id:paymentId},today);
@@ -49,7 +49,7 @@ test('rejected receipt returns its payment request to awaiting verification with
  s=applyAction(s,owner,'rejectPayment',{id:s.pendingPayments[0].id,reason:'Receipt not confirmed'},today);
  assert.equal(s.paymentIntents[0].status,'pending');assert.equal(s.paymentIntents[0].paymentId,undefined);
  assert.equal(TB.balance(s.loans[0],today).total,100e6);
- assert.match(render(s,true,'loan'),/Verify in Torn/);
+ assert.match(render(s,true,'loan'),/Record received payment/);
 });
 
 test('only a lender can resolve borrower requests; results remain visible to the borrower',()=>{
