@@ -18,7 +18,7 @@ export async function handle(request,env){
  let result;const srv=createServer(env);const {database,response,body,identity,rateLimit,loadState,saveState,allowed,torn,flagConfirmedProfile}=srv;
  try{
   if(request.method==='OPTIONS')result=new Response(null,{status:204});
-  else if(path==='/api/health'&&request.method==='GET')result=response({ok:true,version:'1.1.0-beta.17'});
+  else if(path==='/api/health'&&request.method==='GET')result=response({ok:true,version:'1.1.0-beta.18'});
   else if(path==='/api/link'&&request.method==='POST'){
    const ip=request.headers.get('cf-connecting-ip')||'local';await rateLimit('login:'+await digest(ip),5);
    const a=await body(request);const p=(await torn(a.key,'user/profile')).profile;
@@ -35,7 +35,7 @@ export async function handle(request,env){
    const u=await identity(request);await body(request);await database().prepare('DELETE FROM sessions WHERE token_hash=?').bind(u.sessionHash).run();result=response({ok:true});
   }else if(path==='/api/access'){
    const u=await identity(request);if(u.torn_id!==OWNER_ID)fail('Only the owner can manage invitations.',403);
-   if(request.method==='GET')result=response({members:(await database().prepare('SELECT torn_id,created_at FROM allowed_members ORDER BY created_at').all()).results});
+   if(request.method==='GET')result=response({members:(await database().prepare('SELECT a.torn_id,a.created_at,i.name FROM allowed_members a LEFT JOIN identities i ON i.torn_id=a.torn_id ORDER BY a.created_at').all()).results});
    else if(request.method==='POST'){
     await rateLimit(u.platformId+':access',15);const a=await body(request),id=TB.ident(a.id);if(id===OWNER_ID)fail('The owner always has access.');
     if(a.action==='invite')await database().prepare('INSERT OR IGNORE INTO allowed_members(torn_id,created_at,created_by) VALUES(?,?,?)').bind(id,new Date().toISOString(),u.torn_id).run();

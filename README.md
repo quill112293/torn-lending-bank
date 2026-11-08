@@ -143,3 +143,16 @@ Both scripts show the Bank launcher and panel only on Torn bank.php. Leaving tha
 - Existing data and rates are preserved. The withdrawn beta.16 trade-picker changes remain rolled back. Userscripts continue to open only on Torn's bank page, with movable controls. Lender logout stays in Connections and diagnostics in Rules.
 
 Validation: build and 96 tests passed, including authenticated API tests, privacy and collateral lifecycle tests. Rendered-control checks passed in Happy DOM. Chromium download was unavailable; physical iPhone/Torn PDA testing remains pending. No production loan or wallet was changed during tests.
+
+## beta.18 — Users, real-money testing and record management
+
+- **Users** is owner-only. Every beta invite appears as a clickable user card, including invitees who have not applied. IDs appear immediately; verified Torn names appear after login. Refresh beta members to reload the invitation list.
+- Select a user to set Test participant, Private Island Rent-to-Own, verified Oil Rig and faction/external VIP levels, with a reason. The server enforces owner-only assignment. Borrowers see the assigned level instead of choosing one. Existing loan terms stay unchanged. Manual level assignments override completion-count requirements only; other lending checks still apply.
+- Test status applies to new applications, including their resulting loans. Existing real records are not relabelled. A pending application can be explicitly marked TEST in Manage. Ending a person's test status leaves their earlier test records marked TEST.
+- The **Live records / TEST records** selector separates application and loan screens. TEST loans use real money, real trade verification, real cash reservations and the normal collateral/funding lifecycle. There are no simulated trades or virtual funds. Bank/Staff availability applies to the actual service in either view.
+- Test loan completions do not advance real trust or completion counts, and test due dates do not create real payment strikes.
+- **Manage** supports a preview and exact confirmation for removing a selected application, loan, unaccepted payment or pending request. It can clear all TEST records or one person's TEST records. Related records are archived together. The preview shows remaining balance and recorded cash sent/received.
+- Cleanup preserves the actual cash ledger and owner-only archive. It never sends, returns or refunds Torn money. Used receipt references remain blocked from reuse. Funded real loans, real loans with received collateral and individual accepted payments cannot be deleted through these controls. Archive an entire test loan to remove its related accepted test payment records from active screens.
+- Full bank reset is now under Manage; Rules retains diagnostics and a link to management. Test cleanup is separate from full bank reset. No real records were reset during development.
+
+Validation: build and 106 tests passed. Additional coverage includes owner-assigned eligibility, invitation cards, test/live record separation, unchanged money ledgers, archive privacy, receipt reuse prevention and trust/strike isolation. Rendered Users/Manage controls passed Happy DOM checks. Physical Torn PDA testing remains pending.
